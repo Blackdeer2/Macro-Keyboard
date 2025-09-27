@@ -1,46 +1,56 @@
-# tab_buttons.py
 import flet as ft
-from main_data import arduino_buttons, hotkey_combos, encoder_modes
 
-def create_buttons_tab(page: ft.Page):
+def create_buttons_tab(page: ft.Page, service):
     """
-    Повертає колонку з кнопками Arduino та полями для призначення гарячих клавіш
-    або режимів енкодера.
+    Вкладка для 9 кнопок Arduino.
+    Для кожної кнопки можна вибрати гарячу клавішу і режим енкодера.
     """
 
     tab_column = ft.Column(spacing=10, scroll="auto")
+    dropdowns = []  # зберігатимемо посилання на dropdown-и для оновлення
 
-    for btn in arduino_buttons:
-        # Поле для гарячої клавіші
-        hotkey_field = ft.TextField(
-            label=f"{btn.name} Hotkey",
-            width=250,
-            value=btn.hotkey.name if btn.hotkey else ""
-        )
+    def refresh_dropdowns():
+        """Оновлює всі dropdown-и, коли змінився service"""
+        hotkey_options = [ft.dropdown.Option(hk.name) for hk in service.get_hotkeys()]
+        encoder_options = [ft.dropdown.Option(mode.name) for mode in service.get_encoder_modes()]
 
-        # Випадний список для вибору режиму енкодера
-        encoder_dropdown = ft.Dropdown(
-            label="Виберіть режим енкодера",
-            options=[ft.dropdown.Option(mode.name) for mode in encoder_modes],
-            value=btn.encoder_mode.name if btn.encoder_mode else None,
-            width=250
-        )
+        for hk_dd, em_dd, btn in dropdowns:
+            hk_dd.options = hotkey_options
+            hk_dd.value = btn.hotkey.name if btn.hotkey else None
 
-        # Функція збереження налаштувань кнопки
-        def save_btn(e, b=btn, hf=hotkey_field, ed=encoder_dropdown):
-            # Зберігаємо гарячу клавішу (пошук за назвою)
-            b.hotkey = next((hk for hk in hotkey_combos if hk.name == hf.value.strip()), None)
+            em_dd.options = encoder_options
+            em_dd.value = btn.encoder_mode.name if btn.encoder_mode else None
 
-            # Зберігаємо режим енкодера (пошук за назвою)
-            b.encoder_mode = next((em for em in encoder_modes if em.name == ed.value), None)
+        page.update()
 
+    # Підписуємо вкладку на зміни в service
+    service.subscribe(refresh_dropdowns)
+
+    for btn in service.get_buttons():
+        hotkey_dropdown = ft.Dropdown(label="Гаряча клавіша", width=200)
+        encoder_dropdown = ft.Dropdown(label="Режим енкодера", width=200)
+
+        # кнопка "Зберегти" для конкретної кнопки
+        def save_btn(e, b=btn, hk_dd=hotkey_dropdown, em_dd=encoder_dropdown):
+            service.assign_hotkey_to_button(b.name, hk_dd.value)
+            service.assign_encoder_mode_to_button(b.name, em_dd.value)
             page.snack_bar = ft.SnackBar(ft.Text(f"{b.name} збережено ✅"))
             page.snack_bar.open = True
             page.update()
 
-        save_button = ft.ElevatedButton(text="Зберегти", on_click=save_btn)
+        save_button = ft.ElevatedButton("Зберегти", on_click=save_btn)
 
-        # Додаємо до вкладки: поле гарячої клавіші, дропдаун і кнопку
-        tab_column.controls.append(ft.Column([hotkey_field, encoder_dropdown, save_button, ft.Divider()]))
+        # Додаємо dropdown-и та кнопку до списку для оновлення
+        dropdowns.append((hotkey_dropdown, encoder_dropdown, btn))
+
+        # Створюємо рядок для кнопки
+        row = ft.Row(
+            controls=[ft.Text(btn.name, width=100), hotkey_dropdown, encoder_dropdown, save_button],
+            spacing=10
+        )
+        tab_column.controls.append(row)
+
+    # Підвантажуємо початкові дані
+    refresh_dropdowns()
 
     return tab_column
