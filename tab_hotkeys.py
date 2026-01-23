@@ -1,50 +1,45 @@
 import flet as ft
 
 def create_hotkeys_tab(page: ft.Page, service):
-    # Основний список
-    hotkeys_list = ft.Column(spacing=10)
+    # Основний контейнер
+    tab_content = ft.Column(spacing=20, scroll="auto")
 
-    def update_hotkeys_list():
-        hotkeys_list.controls.clear()
-        for hk in service.get_hotkeys():
-            delete_button = ft.IconButton(
-                icon=ft.icons.DELETE_OUTLINE,
-                tooltip="Видалити",
-                on_click=lambda e, hk=hk: remove_hotkey(hk)
-            )
-            # Картка для кожного хоткея
-            card = ft.Container(
-                content=ft.Row(
-                    [
-                        ft.Text(f"{hk.name}", weight="bold", width=150),
-                        ft.Text(f"→   {hk.combo}", size=16, color="blue"),
-                        delete_button
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                    vertical_alignment=ft.CrossAxisAlignment.CENTER
-                ),
-                padding=10,
-                border=ft.border.all(1, ft.colors.OUTLINE),
-                border_radius=8,
-                bgcolor=ft.colors.SURFACE_VARIANT
-            )
-            hotkeys_list.controls.append(card)
-        page.update()
-
-    def remove_hotkey(hk_to_remove):
-        service.remove_hotkey(hk_to_remove)
-        update_hotkeys_list()
-        if hasattr(service, "refresh_buttons_dropdowns"):
-            service.refresh_buttons_dropdowns()
-
-    # --- Форма додавання ---
-    name_field = ft.TextField(label="Назва", width=200)
-    combo_field = ft.TextField(label="Комбінація (напр. ctrl+c)", width=200)
+    # ==========================================
+    # 1. БЛОК СТВОРЕННЯ (Верхня частина)
+    # ==========================================
+    
+    name_field = ft.TextField(
+        hint_text="Назва (напр. Copy)", 
+        width=200, 
+        height=35,
+        text_size=13,
+        content_padding=10,
+        filled=True,
+        bgcolor=ft.colors.SURFACE_VARIANT,
+        border_width=0,
+        border_radius=5
+    )
+    
+    combo_field = ft.TextField(
+        hint_text="Комбінація (напр. ctrl+c)", 
+        width=200,
+        height=35,
+        text_size=13,
+        content_padding=10,
+        filled=True,
+        bgcolor=ft.colors.SURFACE_VARIANT,
+        border_width=0,
+        border_radius=5
+    )
 
     def save_hotkey(e):
         name = name_field.value.strip()
         combo = combo_field.value.strip()
-        if not name or not combo: return
+        if not name or not combo:
+            page.snack_bar = ft.SnackBar(ft.Text("❌ Введіть назву та комбінацію!"))
+            page.snack_bar.open = True
+            page.update()
+            return
 
         service.add_hotkey(name, combo)
         update_hotkeys_list()
@@ -56,32 +51,121 @@ def create_hotkeys_tab(page: ft.Page, service):
         
         if hasattr(service, "refresh_buttons_dropdowns"):
             service.refresh_buttons_dropdowns()
+            
+        page.snack_bar = ft.SnackBar(ft.Text(f"✅ Гарячу клавішу '{name}' додано!"))
+        page.snack_bar.open = True
+        page.update()
 
-    save_button = ft.ElevatedButton("Додати", on_click=save_hotkey, height=50)
-
-    # Компонування форми
-    form_row = ft.Row(
-        [name_field, combo_field, save_button], 
-        vertical_alignment=ft.CrossAxisAlignment.START,
-        alignment=ft.MainAxisAlignment.START,
-        spacing=20
+    add_button = ft.ElevatedButton(
+        text="Додати",
+        icon=ft.icons.ADD,
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=5),
+            padding=ft.padding.symmetric(horizontal=15)
+        ),
+        height=35,
+        on_click=save_hotkey
     )
 
-    content_col = ft.Column(
-        controls=[
-            ft.Text("Створити нову гарячу клавішу", size=20, weight="bold"),
-            form_row,
-            ft.Divider(height=30, thickness=2),
-            ft.Text("Список доступних клавіш", size=20, weight="bold"),
-            hotkeys_list
-        ],
-        scroll="auto"
+    create_row = ft.Container(
+        content=ft.Row([
+            ft.Text("Нова клавіша:", weight="bold", size=14, color="grey"),
+            name_field,
+            ft.Text("+", size=16, color="grey"),
+            combo_field,
+            add_button
+        ], alignment=ft.MainAxisAlignment.START, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+        padding=10,
+        bgcolor=ft.colors.with_opacity(0.05, "blue"),
+        border_radius=10
     )
+
+    # ==========================================
+    # 2. ТАБЛИЦЯ СПИСКУ (Нижня частина)
+    # ==========================================
+    
+    hotkeys_list = ft.Column(spacing=2)
+
+    def update_hotkeys_list():
+        hotkeys_list.controls.clear()
+        
+        # --- ЗАГОЛОВОК ТАБЛИЦІ ---
+        header = ft.Container(
+            content=ft.Row([
+                ft.Text("Назва", weight="bold", color="grey"),       # Ліворуч
+                ft.Text("Комбінація", weight="bold", color="grey"),  # Центр (умовно)
+                ft.Container(width=40)                               # Праворуч (пустишка під смітник)
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),        # <--- РОЗТЯГУЄМО
+            padding=ft.padding.only(left=10, right=10, bottom=5)
+        )
+        hotkeys_list.controls.append(header)
+
+        # --- РЯДКИ ---
+        for hk in service.get_hotkeys():
+            
+            # Кнопка видалення (Червоний смітник)
+            delete_btn = ft.Container(
+                content=ft.IconButton(
+                    icon=ft.icons.DELETE_OUTLINE, # <--- СМІТНИК
+                    icon_size=20,
+                    icon_color="red",             # <--- ЧЕРВОНИЙ
+                    tooltip="Видалити",
+                    on_click=lambda e, x=hk: remove_hotkey(x),
+                    style=ft.ButtonStyle(padding=0)
+                ),
+                width=40,
+                alignment=ft.alignment.center_right
+            )
+
+            # Вміст рядка
+            row_content = ft.Row([
+                # Колонка 1: Назва
+                ft.Row([
+                    ft.Icon(ft.icons.KEYBOARD, size=16, color="blue"),
+                    ft.Text(hk.name, weight="bold", size=14)
+                ]),
+
+                # Колонка 2: Комбінація
+                ft.Container(
+                    content=ft.Text(hk.combo, font_family="monospace", size=12),
+                    padding=ft.padding.symmetric(horizontal=10, vertical=4),
+                    bgcolor=ft.colors.with_opacity(0.1, "grey"),
+                    border_radius=4,
+                ),
+
+                # Колонка 3: Смітник
+                delete_btn
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, height=45) # <--- РОЗТЯГУЄМО
+
+            # Контейнер рядка
+            row_container = ft.Container(
+                content=row_content,
+                padding=ft.padding.symmetric(horizontal=10),
+                border=ft.border.only(bottom=ft.border.BorderSide(1, ft.colors.with_opacity(0.1, "grey"))),
+            )
+            
+            hotkeys_list.controls.append(row_container)
+        
+        if page: page.update()
+
+    def remove_hotkey(hk_to_remove):
+        service.remove_hotkey(hk_to_remove)
+        update_hotkeys_list()
+        if hasattr(service, "refresh_buttons_dropdowns"):
+            service.refresh_buttons_dropdowns()
+        
+        page.snack_bar = ft.SnackBar(ft.Text(f"🗑️ '{hk_to_remove.name}' видалено"))
+        page.snack_bar.open = True
+        page.update()
+
+    # Збираємо все до купи
+    tab_content.controls.append(create_row)
+    tab_content.controls.append(ft.Divider(height=20, color="transparent"))
+    tab_content.controls.append(hotkeys_list)
 
     update_hotkeys_list()
 
-    # Повертаємо контейнер з відступами
     return ft.Container(
-        content=content_col,
-        padding=30
+        content=tab_content,
+        padding=20
     )
