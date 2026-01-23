@@ -1,80 +1,87 @@
 import flet as ft
-from main_data import hotkey_combos
-from hotkey_combo import HotkeyCombo
 
 def create_hotkeys_tab(page: ft.Page, service):
-    tab_column = ft.Column(spacing=10, scroll="auto")
-
-    # Поля для введення
-    name_field = ft.TextField(label="Назва гарячої клавіші", width=250)
-    combo_field = ft.TextField(label="Комбінація (наприклад: ctrl+alt+k)", width=250)
-
-    # Список гарячих клавіш
-    hotkeys_list = ft.Column(spacing=5)
+    # Основний список
+    hotkeys_list = ft.Column(spacing=10)
 
     def update_hotkeys_list():
         hotkeys_list.controls.clear()
-        for hk in hotkey_combos:
-            # Кнопка видалення поруч з гарячою клавішею
+        for hk in service.get_hotkeys():
             delete_button = ft.IconButton(
-                # ВИПРАВЛЕННЯ: ft.icons (маленька літера)
                 icon=ft.icons.DELETE_OUTLINE,
                 tooltip="Видалити",
                 on_click=lambda e, hk=hk: remove_hotkey(hk)
             )
-            hotkeys_list.controls.append(
-                ft.Row([ft.Text(f"{hk.name} → {hk.combo}"), delete_button], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+            # Картка для кожного хоткея
+            card = ft.Container(
+                content=ft.Row(
+                    [
+                        ft.Text(f"{hk.name}", weight="bold", width=150),
+                        ft.Text(f"→   {hk.combo}", size=16, color="blue"),
+                        delete_button
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER
+                ),
+                padding=10,
+                border=ft.border.all(1, ft.colors.OUTLINE),
+                border_radius=8,
+                bgcolor=ft.colors.SURFACE_VARIANT
             )
+            hotkeys_list.controls.append(card)
         page.update()
 
     def remove_hotkey(hk_to_remove):
-        hotkey_combos.remove(hk_to_remove)
-        print(f"❌ Видалено гарячу клавішу: {hk_to_remove.name}")
+        service.remove_hotkey(hk_to_remove)
         update_hotkeys_list()
-        # Оновлення dropdown у вкладці кнопок
         if hasattr(service, "refresh_buttons_dropdowns"):
             service.refresh_buttons_dropdowns()
 
-    # Кнопка збереження
+    # --- Форма додавання ---
+    name_field = ft.TextField(label="Назва", width=200)
+    combo_field = ft.TextField(label="Комбінація (напр. ctrl+c)", width=200)
+
     def save_hotkey(e):
         name = name_field.value.strip()
         combo = combo_field.value.strip()
+        if not name or not combo: return
 
-        if not name or not combo:
-            print("❌ Заповни всі поля!")
-            return
-
-        # Додаємо нову гарячу клавішу
-        hotkey_combos.append(HotkeyCombo(name, combo))
-
-        # Вивід у консоль
-        print("=== Гарячі клавіші ===")
-        for hk in hotkey_combos:
-            print(f"{hk.name} → {hk.combo}")
-
-        # Оновлення списку
+        service.add_hotkey(name, combo)
         update_hotkeys_list()
-
-        # Очищаємо поля
+        
         name_field.value = ""
         combo_field.value = ""
         name_field.update()
         combo_field.update()
-
-        # Оновлення dropdown у вкладці кнопок
+        
         if hasattr(service, "refresh_buttons_dropdowns"):
             service.refresh_buttons_dropdowns()
 
-    save_button = ft.ElevatedButton("Зберегти", on_click=save_hotkey)
+    save_button = ft.ElevatedButton("Додати", on_click=save_hotkey, height=50)
 
-    # Додаємо форму та список на вкладку
-    tab_column.controls.append(
-        ft.Row([name_field, combo_field, save_button], spacing=10)
+    # Компонування форми
+    form_row = ft.Row(
+        [name_field, combo_field, save_button], 
+        vertical_alignment=ft.CrossAxisAlignment.START,
+        alignment=ft.MainAxisAlignment.START,
+        spacing=20
     )
-    tab_column.controls.append(ft.Text("Список гарячих клавіш:", weight="bold"))
-    tab_column.controls.append(hotkeys_list)
 
-    # Початкове оновлення списку
+    content_col = ft.Column(
+        controls=[
+            ft.Text("Створити нову гарячу клавішу", size=20, weight="bold"),
+            form_row,
+            ft.Divider(height=30, thickness=2),
+            ft.Text("Список доступних клавіш", size=20, weight="bold"),
+            hotkeys_list
+        ],
+        scroll="auto"
+    )
+
     update_hotkeys_list()
 
-    return tab_column
+    # Повертаємо контейнер з відступами
+    return ft.Container(
+        content=content_col,
+        padding=30
+    )
