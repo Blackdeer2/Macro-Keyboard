@@ -1,24 +1,20 @@
-# main_data.py
 from hotkey_combo import HotkeyCombo
 from encoder_mode import EncoderMode
 from arduino_button import ArduinoButton
 
-hotkey_combos = [
-    # HotkeyCombo(name="Copy", combo="ctrl+c"),
-    # HotkeyCombo(name="Paste", combo="ctrl+v"),
-    # HotkeyCombo(name="Undo", combo="ctrl+z"),
-    # HotkeyCombo(name="Redo", combo="ctrl+y"),
-]
+hotkey_combos = []
+encoder_modes = []
 
-encoder_modes = [
-    # EncoderMode(name="ScrollMode", left_cmd="up", right_cmd="down"),
-    # EncoderMode(name="VolumeMode", left_cmd="volume_down", right_cmd="volume_up"),
-    # EncoderMode(name="ShiftMode", left_cmd="shift+left", right_cmd="shift+right"),
-]
+# Зберігаємо активний режим енкодера
+active_encoder_mode = {"mode": None}
 
-arduino_buttons = []
-for i in range(1, 10):
-    btn_name = f"BUTTON_{i}"
-    # На старті кнопки не мають призначеної гарячої клавіші чи режиму
-    btn = ArduinoButton(name=btn_name, hotkey=None, encoder_mode=None)
-    arduino_buttons.append(btn)
+# === НОВЕ: СТРУКТУРА ПРОФІЛІВ ===
+# Створюємо 3 окремі списки кнопок (для кожного режиму світлодіода)
+profiles = {
+    1: [ArduinoButton(name=f"BUTTON_{i}", hotkey=None, encoder_mode=None) for i in range(1, 10)],
+    2: [ArduinoButton(name=f"BUTTON_{i}", hotkey=None, encoder_mode=None) for i in range(1, 10)],
+    3: [ArduinoButton(name=f"BUTTON_{i}", hotkey=None, encoder_mode=None) for i in range(1, 10)]
+}
+
+# Змінна, яка пам'ятає, який профіль зараз активний (1, 2 або 3)
+active_profile_index = 1
