@@ -801,9 +801,6 @@
    'C:\\Program '
    'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\\lib\\concurrent\\futures\\thread.py',
    'PYMODULE'),
-  ('config_manager',
-   'C:\\Users\\vivo\\Desktop\\flet interface\\config_manager.py',
-   'PYMODULE'),
   ('configparser',
    'C:\\Program '
    'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\\lib\\configparser.py',
@@ -2174,9 +2171,6 @@
   ('lzma',
    'C:\\Program '
    'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\\lib\\lzma.py',
-   'PYMODULE'),
-  ('main_data',
-   'C:\\Users\\vivo\\Desktop\\flet interface\\main_data.py',
    'PYMODULE'),
   ('markdown_it',
    'C:\\Users\\vivo\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\markdown_it\\__init__.py',
