@@ -1,0 +1,148 @@
+{
+    "hotkeys": [],
+    "encoder_modes": [],
+    "profiles": {
+        "1": [
+            {
+                "name": "BUTTON_1",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_2",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_3",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_4",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_5",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_6",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_7",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_8",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_9",
+                "hotkey": null,
+                "encoder_mode": null
+            }
+        ],
+        "2": [
+            {
+                "name": "BUTTON_1",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_2",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_3",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_4",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_5",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_6",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_7",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_8",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_9",
+                "hotkey": null,
+                "encoder_mode": null
+            }
+        ],
+        "3": [
+            {
+                "name": "BUTTON_1",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_2",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_3",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_4",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_5",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_6",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_7",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_8",
+                "hotkey": null,
+                "encoder_mode": null
+            },
+            {
+                "name": "BUTTON_9",
+                "hotkey": null,
+                "encoder_mode": null
+            }
+        ]
+    },
+    "last_active_profile": 1
+}
