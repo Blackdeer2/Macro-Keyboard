@@ -1,9 +1,25 @@
 import json
+import os
+import shutil
+import sys
 from hotkey_combo import HotkeyCombo
 from encoder_mode import EncoderMode
 from arduino_button import ArduinoButton
 
-CONFIG_FILE = "config.json"
+def _config_path():
+    """Конфіг лежить у %APPDATA%/MacroKey (Windows) і не залежить від теки запуску."""
+    base = os.environ.get("APPDATA") or os.path.join(os.path.expanduser("~"), ".config")
+    folder = os.path.join(base, "MacroKey")
+    os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, "config.json")
+    if not os.path.exists(path):  # перенос старого конфігу поруч із програмою
+        here = os.path.dirname(sys.executable if getattr(sys, "frozen", False) else os.path.abspath(__file__))
+        old = os.path.join(here, "config.json")
+        if os.path.exists(old):
+            shutil.copy(old, path)
+    return path
+
+CONFIG_FILE = _config_path()
 
 class Service:
     def __init__(self):
@@ -21,12 +37,14 @@ class Service:
         }
         
         # Для передачі стану енкодера в ArduinoHandler (раніше active_encoder_ref)
-        self.current_encoder_mode_obj = None 
+        self.current_encoder_mode_obj = None
+        self.encoder_alt_active = False  # MODE_V / MODE_H від Arduino
+        self.refresh_buttons_dropdowns = lambda: None  # підміняється вкладкою кнопок
 
     # === КОНФІГУРАЦІЯ (раніше config_manager.py) ===
     def load_config(self):
         try:
-            with open(CONFIG_FILE, "r") as f:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 content = f.read().strip()
                 if not content: return
                 data = json.loads(content)
@@ -54,10 +72,11 @@ class Service:
                         btn_data = next((b for b in buttons_data if b["name"] == btn.name), None)
                         if btn_data:
                             # Шукаємо об'єкти за іменами
-                            btn.hotkey = next((hk for hk in self.hotkey_combos if hk.name == btn_data["hotkey"]), None)
-                            btn.encoder_mode = next((em for em in self.encoder_modes if em.name == btn_data["encoder_mode"]), None)
+                            btn.hotkey = next((hk for hk in self.hotkey_combos if hk.name == btn_data.get("hotkey")), None)
+                            btn.encoder_mode = next((em for em in self.encoder_modes if em.name == btn_data.get("encoder_mode")), None)
             
-            self.active_profile_index = data.get("last_active_profile", 1)
+            last = data.get("last_active_profile", 1)
+            self.active_profile_index = last if last in self.profiles else 1
             print("✅ Конфігурація завантажена")
         except FileNotFoundError:
             print("ℹ️ Файл конфігурації не знайдено, створено новий.")
@@ -93,8 +112,10 @@ class Service:
         }
         
         try:
-            with open(CONFIG_FILE, "w") as f:
-                json.dump(data, f, indent=4)
+            tmp = CONFIG_FILE + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+            os.replace(tmp, CONFIG_FILE)  # атомарно: не втратимо конфіг при збої
             print("💾 Конфігурація збережена")
         except Exception as e:
             print(f"❌ Помилка збереження: {e}")
@@ -158,6 +179,8 @@ class Service:
     def remove_encoder_mode(self, mode_obj):
         if mode_obj in self.encoder_modes:
             self.encoder_modes.remove(mode_obj)
+            if self.current_encoder_mode_obj is mode_obj:
+                self.current_encoder_mode_obj = None
             for prof in self.profiles.values():
                 for btn in prof:
                     if btn.encoder_mode == mode_obj: btn.encoder_mode = None

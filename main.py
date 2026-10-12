@@ -24,7 +24,6 @@ def main(page: ft.Page):
     
     # 2. ПІДКЛЮЧЕННЯ ARDUINO
     arduino = ArduinoHandler(service)
-    arduino.connect()
 
     # Збереження при виході
     atexit.register(lambda: service.save_config())
@@ -54,6 +53,7 @@ def main(page: ft.Page):
 
         def on_quit(icon, item):
             icon.stop()
+            arduino.stop()
             service.save_config()
             page.window.destroy()
 
@@ -75,14 +75,25 @@ def main(page: ft.Page):
     def update_profile_ui():
         idx = service.get_current_profile_index()
         profile_text.value = f"АКТИВНИЙ ПРОФІЛЬ: {idx}"
-        profile_text.color = {1: "red", 2: "yellow", 3: "green"}.get(idx, "black")
+        profile_text.color = {1: "red", 2: "yellow", 3: "green"}.get(idx, "grey")
         
-        # Оновлюємо вміст вкладок, якщо вони мають метод refresh
-        if hasattr(service, "refresh_buttons_dropdowns"):
-            service.refresh_buttons_dropdowns()
+        service.refresh_buttons_dropdowns()
         page.update()
 
     service.on_profile_change_callback = update_profile_ui
+
+    status_text = ft.Text("🔌 Arduino: пошук...", size=13, color="grey")
+
+    def update_status(connected, port):
+        status_text.value = f"🟢 Arduino: {port}" if connected else "🔴 Arduino: не підключено (шукаю...)"
+        status_text.color = "green" if connected else "red"
+        try:
+            page.update()
+        except Exception:
+            pass
+
+    arduino.on_status_change = update_status
+    arduino.start()
 
     # Вкладки
     tabs = ft.Tabs(
@@ -97,6 +108,7 @@ def main(page: ft.Page):
 
     page.add(
         ft.Row([profile_text], alignment=ft.MainAxisAlignment.CENTER),
+        ft.Row([status_text], alignment=ft.MainAxisAlignment.CENTER),
         tabs
     )
 

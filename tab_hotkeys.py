@@ -1,5 +1,7 @@
 import flet as ft
 
+from hotkeys import validate_combo
+
 def create_hotkeys_tab(page: ft.Page, service):
     # Основний контейнер
     tab_content = ft.Column(spacing=20, scroll="auto")
@@ -41,6 +43,13 @@ def create_hotkeys_tab(page: ft.Page, service):
             page.update()
             return
 
+        err = validate_combo(combo)
+        if err:
+            page.snack_bar = ft.SnackBar(ft.Text(f"❌ {err}"))
+            page.snack_bar.open = True
+            page.update()
+            return
+
         service.add_hotkey(name, combo)
         update_hotkeys_list()
         
@@ -49,8 +58,7 @@ def create_hotkeys_tab(page: ft.Page, service):
         name_field.update()
         combo_field.update()
         
-        if hasattr(service, "refresh_buttons_dropdowns"):
-            service.refresh_buttons_dropdowns()
+        service.refresh_buttons_dropdowns()
             
         page.snack_bar = ft.SnackBar(ft.Text(f"✅ Гарячу клавішу '{name}' додано!"))
         page.snack_bar.open = True
@@ -151,8 +159,7 @@ def create_hotkeys_tab(page: ft.Page, service):
     def remove_hotkey(hk_to_remove):
         service.remove_hotkey(hk_to_remove)
         update_hotkeys_list()
-        if hasattr(service, "refresh_buttons_dropdowns"):
-            service.refresh_buttons_dropdowns()
+        service.refresh_buttons_dropdowns()
         
         page.snack_bar = ft.SnackBar(ft.Text(f"🗑️ '{hk_to_remove.name}' видалено"))
         page.snack_bar.open = True

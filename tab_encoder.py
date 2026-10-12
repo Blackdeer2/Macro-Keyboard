@@ -1,5 +1,7 @@
 import flet as ft
 
+from hotkeys import validate_combo
+
 def create_encoder_tab(page: ft.Page, service):
     # Основний контейнер
     tab_content = ft.Column(spacing=20, scroll="auto")
@@ -50,6 +52,15 @@ def create_encoder_tab(page: ft.Page, service):
             page.update()
             return
 
+        cmds = [left_field.value, right_field.value, click_left_field.value, click_right_field.value]
+        for c in cmds:
+            err = validate_combo(c.strip()) if c.strip() else None
+            if err:
+                page.snack_bar = ft.SnackBar(ft.Text(f"❌ {err}"))
+                page.snack_bar.open = True
+                page.update()
+                return
+
         service.add_encoder_mode(
             name, 
             left_field.value.strip(), right_field.value.strip(),
@@ -64,8 +75,7 @@ def create_encoder_tab(page: ft.Page, service):
         click_right_field.value = ""
         
         refresh_modes()
-        if hasattr(service, "refresh_buttons_dropdowns"):
-            service.refresh_buttons_dropdowns()
+        service.refresh_buttons_dropdowns()
 
         page.snack_bar = ft.SnackBar(ft.Text(f"✅ Пресет '{name}' збережено!"))
         page.snack_bar.open = True
@@ -191,8 +201,7 @@ def create_encoder_tab(page: ft.Page, service):
     def delete_mode(mode_obj):
         service.remove_encoder_mode(mode_obj)
         refresh_modes()
-        if hasattr(service, "refresh_buttons_dropdowns"):
-            service.refresh_buttons_dropdowns()
+        service.refresh_buttons_dropdowns()
         
         page.snack_bar = ft.SnackBar(ft.Text(f"🗑️ Пресет '{mode_obj.name}' видалено"))
         page.snack_bar.open = True
